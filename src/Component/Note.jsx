@@ -1,63 +1,132 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { FaUserEdit } from "react-icons/fa";
+import { MdFolderDelete } from "react-icons/md";
 
 const Note = () => {
 
+    // localStorage.removeItem('note');
+    
     const [title, setTitle] = useState('');
     const [des, setDes] = useState('');
-    const [task, setTask] = useState([]);
-    
+    const [note, setNote] = useState(
+        JSON.parse(localStorage.getItem('note'))
+    );
+    const [edit, setEdit] = useState(false);
+    const [editId, setEditId] = useState(null);
+
+    useEffect(() => {
+        localStorage.setItem('note', JSON.stringify(note))
+    }, [note, edit])
+
 
     const handleSubmit = (e) => {
         e.preventDefault()
         // console.log('Heading is', title)
         // console.log('Description', des)
+        const id = new Date().getTime().toString();
 
-        const newTask = [...task]
-        newTask.push({ title, des })
-        setTask(newTask)
-        console.log(newTask)
-
+        const newNote = {
+            id: id,
+            title: title,
+            des: des,
+        }
+        setNote((prev) => {
+            return [newNote, ...prev]
+        })
         setTitle('')
         setDes('')
     }
 
+    const handleEdit = (e) => {
+        e.preventDefault()
+        const id = editId
+        const newNote = {
+            id: id,
+            title: title,
+            des: des,
+        }
+        setNote(
+            note.map((note) => note.id === id ? newNote : note )
+        )
+        setTitle('')
+        setDes('')
+        setEdit(false);
+    }
 
-    const deleteNote = (index) => {
-        // console.log('deleted', index)
-         const newTask = [...task]
-         newTask.splice(index,1)
-         setTask(newTask)
+    const deleteNote = (id) => {
+        const fil = note.filter((note) => note.id !== id)
+        setNote(fil)
     }
 
     return (
-        <div className='h-screen lg:flex bg-black text-white overflow-auto'>
-            <form onSubmit={handleSubmit} className='flex flex-col lg:w-1/2  items-start gap-4 p-10'>
-                <h3 className='text-4xl font-bold pb-4'>Add Notes</h3>
-                <input onChange={(e) => {
-                    setTitle(e.target.value)
-                }} type='text' value={title} placeholder='Write heading' required className=' border-2 rounded px-3 py-3 outline-none w-full font-medium'></input>
-                <textarea onChange={(e) => {
-                    setDes(e.target.value)
-                }} type='text' value={des} placeholder='Write note' required className=' border-2 w-full px-3 py-3 h-32 rounded outline-none font-medium'></textarea>
-                <button className='border-2 w-full bg-white text-black py-2 px-4 font-semibold rounded text-lg outline-none active:bg-gray-200 cursor-pointer active:scale-95'>Add Note</button>
-            </form>
+        <div className='h-screen overflow-auto flex flex-col md:flex-row bg-black text-white'>
+            <div className='w-full xl:w-2/3'>
+                {
+                    edit ? (<>
+                        <form onSubmit={handleEdit} className='w-full flex flex-col  items-start gap-4 px-4 lg:px-10 py-10'>
+                            <h3 className='text-3xl lg:text-3xl font-bold'>Update Notes</h3>
+                            <input onChange={(e) => {
+                                setTitle(e.target.value)
+                            }} type='text' value={title} placeholder='Write heading' required className=' border-2 rounded px-3 py-2 md:py-3 outline-none w-full font-medium'></input>
+                            <textarea onChange={(e) => {
+                                setDes(e.target.value)
+                            }} type='text' value={des} placeholder='Write note' required className=' border-2 w-full px-3 py-3 h-28 md:h-32 rounded outline-none font-medium'></textarea>
+                            <button className='border-2 w-full bg-white text-black py-2 px-4 font-semibold rounded text-[16px] md:text-[17px] outline-none active:bg-gray-200 cursor-pointer active:scale-95'>Update Note</button>
+                        </form>
+                    </>
 
-            <div className='lg:w-1/2 lg:border-l-2 p-10 overflow-auto'>
-                <h3 className='text-4xl font-bold'>Recent Notes</h3>
-                <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 mt-5 gap-4'>
+                    ) : (
+                        <><form onSubmit={handleSubmit} className='w-full flex flex-col  items-start gap-4 px-4 lg:px-10 py-10'>
+                            <h3 className='text-3xl lg:text-3xl font-bold'>Add Notes</h3>
+                            <input onChange={(e) => {
+                                setTitle(e.target.value)
+                            }} type='text' value={title} placeholder='Write heading' required className=' border-2 rounded px-3 py-2 md:py-3 outline-none w-full font-medium'></input>
+                            <textarea onChange={(e) => {
+                                setDes(e.target.value)
+                            }} type='text' value={des} placeholder='Write note' required className=' border-2 w-full px-3 py-3 h-28 md:h-32 rounded outline-none font-medium'></textarea>
+                            <button className='border-2 w-full bg-white text-black py-2 px-4 font-semibold rounded text-[16px] md:text-[17px] outline-none active:bg-gray-200 cursor-pointer active:scale-95'>Add Note</button>
+                        </form></>)
+                }
+            </div>
 
-                    {task.map(function (item, index) {
+            <div className='w-full md:border-l-2 px-4 lg:px-10 py-4 md:py-10 md:overflow-auto'>
+                <h3 className='text-3xl lg:text-3xl font-bold'>Recent Notes</h3>
+                <div className=' mt-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 space-y-4 xl:grid-cols-4 gap-2'>
+                    {note.length === 0 &&
+                        <p className='text-red-500 text-center'>No Note added</p>
+                    }
+                    {
+                        note.map((item) => (
+                            <div key={item.id} className='h-60 text-white xl:h-66 relative rounded overflow-hidden '>
+                                <img src='https://plus.unsplash.com/premium_photo-1670057973828-2175bd7c700f?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' className=' absolute inset-0 object-cover w-full h-full opacity-50' />
 
-                        return <div key={index} className='h-52 w-36 flex flex-col justify-between items-start relative bg-cover bg-center bg-[url("https://t3.ftcdn.net/jpg/15/11/17/06/360_F_1511170665_HTCBlRKyWnRHoehUp6yauoNKtFnhtjh7.jpg")] rounded overflow-hidden'>
-                            <div className='overflow-y-auto h-full'>
-                                <h2 className='text-black text-xl font-bold leading-tight px-2 mt-5'>{item.title}</h2>
-                                <h2 className='text-gray-700 font-medium leading-relaxed text-sm px-2 mt-1'>{item.des}</h2>
+                                <div className='flex flex-col items-center justify-between'>
+                                    <div className='absolute top-0 text-white left-0 right-0 bottom-6 p-2 overflow-auto scroll-smooth hide-scrollbar'>
+                                        <h2 className='text-[15px] uppercase leading-tight font-medium'>{item.title}</h2>
+                                        <hr className='border-t-2 mt-1.5'></hr>
+                                        <p className='mt-2 leading-snug text-[15px] text-white/90'>{item.des}</p>
+                                    </div>
+                                    <div className='absolute bottom-0 left-0 right-0 text-white'>
+                                        <div className='grid grid-cols-2'>
+                                            <div onClick={() => deleteNote(item.id)}
+                                                className='flex flex-col p-1  items-center justify-center bg-red-600'>
+                                                <MdFolderDelete className='text-xl' />
+                                            </div>
+                                            <div onClick={() => {
+                                                setEditId(item.id);
+                                                setEdit(true);
+                                                setTitle(item.title);
+                                                setDes(item.des);
+                                            }}
+                                                className='flex flex-col p-1 items-center justify-center bg-green-600'>
+                                                <FaUserEdit className='text-xl' />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <button onClick={() =>{
-                                deleteNote(index)
-                            }} className='w-full border py-1 cursor-pointer active:scale-95 bg-red-600 text-sm font-semibold'>Delete</button>
-                        </div>
-                    })}
+                        ))
+                    }
                 </div>
             </div>
         </div>
