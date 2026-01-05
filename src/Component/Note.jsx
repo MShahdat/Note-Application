@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaUserEdit } from "react-icons/fa";
 import { MdFolderDelete } from "react-icons/md";
+import { RxCross2 } from "react-icons/rx";
+
+
 
 const Note = () => {
 
@@ -14,11 +17,18 @@ const Note = () => {
     })
     const [edit, setEdit] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [open, setOpen] = useState(false);
+    const inputRef = useRef(null);
 
     useEffect(() => {
         localStorage.setItem('note', JSON.stringify(note))
-    }, [note, edit])
+    }, [note])
 
+    useEffect(() => {
+        if (edit && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [edit])
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -36,6 +46,7 @@ const Note = () => {
         })
         setTitle('')
         setDes('')
+        setOpen(!open)
     }
 
     const handleEdit = (e) => {
@@ -52,6 +63,7 @@ const Note = () => {
         setTitle('')
         setDes('')
         setEdit(false);
+        setOpen(false)
     }
 
     const deleteNote = (id) => {
@@ -61,42 +73,79 @@ const Note = () => {
 
     return (
         <div className='h-screen overflow-auto flex flex-col md:flex-row bg-black text-white'>
-            <div className='w-full xl:w-2/3'>
-                {
-                    edit ? (
-                        <div>
-                            <form onSubmit={handleEdit} className='w-full flex flex-col  items-start gap-4 px-4 lg:px-10 py-10'>
-                                <h3 className='text-3xl lg:text-3xl font-bold'>Update Notes</h3>
-                                <input onChange={(e) => {
-                                    setTitle(e.target.value)
-                                }} type='text' value={title} placeholder='Write heading' required className=' border-2 rounded px-3 py-2 md:py-3 outline-none w-full font-medium'></input>
-                                <textarea onChange={(e) => {
-                                    setDes(e.target.value)
-                                }} type='text' value={des} placeholder='Write note' required className=' border-2 w-full px-3 py-3 h-28 md:h-32 rounded outline-none font-medium'></textarea>
-                                <button className='border-2 w-full bg-white text-black py-2 px-4 font-semibold rounded text-[16px] md:text-[17px] outline-none active:bg-gray-200 cursor-pointer active:scale-95'>Update Note</button>
-                            </form>
-                        </div>
+            {
+                open &&
+                <div className='w-full xl:w-2/3'>
+                    {
+                        edit ? (
+                            <div>
+                                <form onSubmit={handleEdit} className='w-full flex flex-col  items-start gap-4 px-4 lg:px-10 py-10'>
+                                    <div className='flex items-center gap-8 justify-between sm:justify-normal'>
+                                        <h3 className='text-3xl lg:text-3xl font-bold'>Update Note</h3>
+                                        {
+                                            open &&
+                                            <button onClick={() => {
+                                                setOpen(!open);
+                                                setEdit(false);
+                                            }}
+                                                className='bg-white text-red-600 font-medium px-2 py-1 rounded'>
+                                                Cancel
+                                            </button>
+                                        }
+                                    </div>
+                                    <input ref={inputRef} onChange={(e) => {
+                                        setTitle(e.target.value)
+                                    }} type='text' value={title} placeholder='Write heading' required className=' border-2 rounded px-3 py-2 md:py-3 outline-none w-full font-medium'></input>
+                                    <textarea onChange={(e) => {
+                                        setDes(e.target.value)
+                                    }} type='text' value={des} placeholder='Write note' required className=' border-2 w-full px-3 py-3 h-28 md:h-32 rounded outline-none font-medium'></textarea>
+                                    <button className='border-2 w-full bg-white text-black py-2 px-4 font-semibold rounded text-[16px] md:text-[17px] outline-none active:bg-gray-200 cursor-pointer active:scale-95'>Update Note</button>
+                                </form>
+                            </div>
 
-                    ) : (
-                        <div>
-                            <form onSubmit={handleSubmit} className='w-full flex flex-col  items-start gap-4 px-4 lg:px-10 py-10'>
-                                <h3 className='text-3xl lg:text-3xl font-bold'>Add Notes</h3>
-                                <input onChange={(e) => {
-                                    setTitle(e.target.value)
-                                }} type='text' value={title} placeholder='Write heading' required className=' border-2 rounded px-3 py-2 md:py-3 outline-none w-full font-medium'></input>
-                                <textarea onChange={(e) => {
-                                    setDes(e.target.value)
-                                }} type='text' value={des} placeholder='Write note' required className=' border-2 w-full px-3 py-3 h-28 md:h-32 rounded outline-none font-medium'></textarea>
-                                <button className='border-2 w-full bg-white text-black py-2 px-4 font-semibold rounded text-[16px] md:text-[17px] outline-none active:bg-gray-200 cursor-pointer active:scale-95'>Add Note</button>
-                            </form>
-                        </div>)
-                }
-            </div>
+                        ) : (
+                            <div>
+                                <form onSubmit={handleSubmit} className='w-full flex flex-col  items-start gap-4 px-4 lg:px-10 py-10'>
+                                    <div className='flex items-center gap-8 justify-between sm:justify-normal'>
+                                        <h3 className='text-3xl lg:text-3xl font-bold'>Add Notes</h3>
+                                        {
+                                            open &&
+                                            <button onClick={() => {
+                                                setOpen(!open);
+                                            }}
+                                                className='bg-white text-red-600 font-medium px-2 py-1 rounded'>
+                                                Cancel
+                                            </button>
+                                        }
+                                    </div>
+                                    <input onChange={(e) => {
+                                        setTitle(e.target.value)
+                                    }} type='text' value={title} placeholder='Write heading' required className=' border-2 rounded px-3 py-2 md:py-3 outline-none w-full font-medium'></input>
+                                    <textarea onChange={(e) => {
+                                        setDes(e.target.value)
+                                    }} type='text' value={des} placeholder='Write note' required className=' border-2 w-full px-3 py-3 h-28 md:h-32 rounded outline-none font-medium'></textarea>
+                                    <button className='border-2 w-full bg-white text-black py-2 px-4 font-semibold rounded text-[16px] md:text-[17px] outline-none active:bg-gray-200 cursor-pointer active:scale-95'>Add Note</button>
+                                </form>
+                            </div>)
+                    }
+                </div>
+            }
 
-            <div className='w-full md:border-l-2 px-4 lg:px-10 py-4 md:py-10 md:overflow-auto'>
-                <h3 className='text-3xl lg:text-3xl font-bold'>Recent Notes</h3>
+            <div className='w-full md:border-l-2 px-4 lg:px-10 py-10 md:py-10 md:overflow-auto'>
+                <div className='flex items-center gap-8 justify-between sm:justify-normal '>
+                    <h3 className='text-3xl lg:text-3xl font-bold'>Recent Notes</h3>
+                    {
+                        !open &&
+                        <button onClick={() => {
+                            setOpen(!open);
+                        }}
+                            className='bg-white text-black font-medium px-2 py-1 rounded'>
+                            Add Note
+                        </button>
+                    }
+                </div>
                 <div className=' mt-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 space-y-4 xl:grid-cols-4 gap-2'>
-                    {note.length === 0 && 
+                    {note.length === 0 &&
                         <p className='text-red-500 text-center'>No Note added</p>
                     }
                     {
@@ -121,6 +170,7 @@ const Note = () => {
                                                 setEdit(true);
                                                 setTitle(item.title);
                                                 setDes(item.des);
+                                                setOpen(true)
                                             }}
                                                 className='flex flex-col p-1 items-center justify-center bg-green-600'>
                                                 <FaUserEdit className='text-xl' />
